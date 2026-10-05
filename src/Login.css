@@ -1,0 +1,58 @@
+.login-tela {
+  --verde: #1f6f5c;
+  --verde-esc: #14503f;
+  --bg: #f7f8f6;
+  --card: #ffffff;
+  --borda: #e2e7e3;
+  --texto: #1f2723;
+  --muted: #6b7770;
+  --erro: #b44a3c;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--texto);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  box-sizing: border-box;
+}
+.login-card {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .04);
+}
+.login-titulo { margin: 0 0 6px; font-size: 22px; font-weight: 700; text-align: center; }
+.login-sub { margin: 0 0 24px; color: var(--muted); font-size: 14px; text-align: center; }
+.login-campo { display: block; margin-bottom: 16px; }
+.login-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 7px; }
+.login-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color .15s;
+}
+.login-input:focus { border-color: var(--verde); box-shadow: 0 0 0 3px rgba(31, 111, 92, .12); }
+.login-erro { margin: 0 0 16px; font-size: 13px; color: var(--erro); text-align: center; }
+.login-btn {
+  width: 100%;
+  padding: 13px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--verde);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+}
+.login-btn:hover:not(:disabled) { background: var(--verde-esc); }
+.login-btn:disabled { opacity: .6; cursor: default; }
