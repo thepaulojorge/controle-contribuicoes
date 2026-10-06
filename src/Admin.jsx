@@ -21,26 +21,43 @@ export default function Admin() {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (!sessao) return;
+  // Busca as contribuições no banco (fora do useEffect, pra poder reusar)
+  async function buscarContribuicoes() {
+    setBuscando(true);
+    const { data, error } = await supabase
+      .from('contribuicoes')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-    async function buscarContribuicoes() {
-      setBuscando(true);
-      const { data, error } = await supabase
-        .from('contribuicoes')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Erro ao buscar:', error);
-      } else {
-        setContribuicoes(data);
-      }
-      setBuscando(false);
+    if (error) {
+      console.error('Erro ao buscar:', error);
+    } else {
+      setContribuicoes(data);
     }
+    setBuscando(false);
+  }
 
-    buscarContribuicoes();
+  // Quando existir sessão, busca os dados
+  useEffect(() => {
+    if (sessao) {
+      buscarContribuicoes();
+    }
   }, [sessao]);
+
+  // Confirma uma contribuição (muda status para 'confirmado')
+  async function confirmar(id) {
+    const { error } = await supabase
+      .from('contribuicoes')
+      .update({ status: 'confirmado' })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Erro ao confirmar:', error);
+      alert('Não foi possível confirmar.');
+      return;
+    }
+    buscarContribuicoes();
+  }
 
   const brl = (n) =>
     n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -94,6 +111,7 @@ export default function Admin() {
               <th>Tipo</th>
               <th>Prazo (meses)</th>
               <th>Status</th>
+              <th>Ação</th>
             </tr>
           </thead>
           <tbody>
@@ -105,6 +123,11 @@ export default function Admin() {
                 <td>{c.tipo === 'doacao' ? 'Doação' : 'Empréstimo'}</td>
                 <td>{c.prazo_retorno ?? '—'}</td>
                 <td>{c.status}</td>
+                <td>
+                  {c.status === 'pendente' && (
+                    <button onClick={() => confirmar(c.id)}>Confirmar</button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
