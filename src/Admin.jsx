@@ -59,6 +59,26 @@ export default function Admin() {
     buscarContribuicoes();
   }
 
+  // Remove uma contribuição (apaga do banco) — pede confirmação antes
+  async function remover(id) {
+    const confirmou = window.confirm(
+      'Tem certeza que deseja remover esta contribuição? Esta ação não pode ser desfeita.'
+    );
+    if (!confirmou) return;
+
+    const { error } = await supabase
+      .from('contribuicoes')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Erro ao remover:', error);
+      alert('Não foi possível remover.');
+      return;
+    }
+    buscarContribuicoes();
+  }
+
   const brl = (n) =>
     n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -111,7 +131,7 @@ export default function Admin() {
               <th>Tipo</th>
               <th>Prazo (meses)</th>
               <th>Status</th>
-              <th>Ação</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -127,6 +147,7 @@ export default function Admin() {
                   {c.status === 'pendente' && (
                     <button onClick={() => confirmar(c.id)}>Confirmar</button>
                   )}
+                  <button onClick={() => remover(c.id)}>Remover</button>
                 </td>
               </tr>
             ))}
