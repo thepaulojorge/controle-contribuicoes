@@ -1,21 +1,6 @@
 import { useState } from 'react';
-import './FormularioContribuicao.css';
 import { supabase } from './supabaseClient';
-
-/*
-  Modelo de dados de UMA contribuição (o formato que vamos salvar no Supabase na Fase 2):
-
-  {
-    id: string,
-    nome: string,
-    contato: string,               // telefone ou e-mail para a diretoria falar com a pessoa
-    valor: number,                 // em reais
-    tipo: 'doacao' | 'emprestimo',
-    prazoRetorno: number | null,   // em meses — só para empréstimo
-    data: string,                  // data/hora ISO
-    status: 'pendente' | 'confirmado'
-  }
-*/
+import './FormularioContribuicao.css';
 
 export default function FormularioContribuicao() {
   // --- Estado dos campos do formulário ---
@@ -26,12 +11,7 @@ export default function FormularioContribuicao() {
   const [prazoRetorno, setPrazoRetorno] = useState('');
   const [erros, setErros] = useState({});
 
-  // Todas as contribuições enviadas nesta sessão.
-  // OBS de privacidade: esta lista NÃO é mostrada ao contribuinte.
-  // Ela vai virar o painel restrito (Fase 3), visível só para a diretoria.
-  const [contribuicoes, setContribuicoes] = useState([]);
-
-  // A contribuição que a pessoa acabou de enviar — ela vê só a DELA.
+  // A contribuição recém-enviada. Enquanto tiver valor, o modal de agradecimento aparece.
   const [enviada, setEnviada] = useState(null);
 
   // --- Validação ---
@@ -45,7 +25,6 @@ export default function FormularioContribuicao() {
       e.valor = 'Informe um valor maior que zero.';
     }
 
-    // prazo só é obrigatório quando é empréstimo
     if (tipo === 'emprestimo') {
       const prazoNum = Number(prazoRetorno);
       if (!prazoRetorno || isNaN(prazoNum) || prazoNum <= 0) {
@@ -56,12 +35,11 @@ export default function FormularioContribuicao() {
   }
 
   // --- Envio ---
-    async function handleSubmit() {
+  async function handleSubmit() {
     const e = validar();
     setErros(e);
-    if (Object.keys(e).length > 0) return; // tem erro: não envia
+    if (Object.keys(e).length > 0) return;
 
-    // Monta a contribuição no formato das COLUNAS do banco (com underline)
     const nova = {
       nome: nome.trim(),
       contato: contato.trim(),
@@ -71,10 +49,7 @@ export default function FormularioContribuicao() {
       status: 'pendente',
     };
 
-    // Envia pro Supabase e espera a resposta
-        const { error } = await supabase
-      .from('contribuicoes')
-      .insert(nova);
+    const { error } = await supabase.from('contribuicoes').insert(nova);
 
     if (error) {
       console.error('Erro ao salvar:', error);
@@ -82,8 +57,7 @@ export default function FormularioContribuicao() {
       return;
     }
 
-    // deu certo: mostra a confirmação com o que voltou do banco
-        setEnviada(nova);
+    setEnviada(nova);
 
     // limpa o formulário
     setNome('');
@@ -98,51 +72,14 @@ export default function FormularioContribuicao() {
   const brl = (n) =>
     n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-  // ---------- TELA DE CONFIRMAÇÃO (a pessoa vê só a contribuição dela) ----------
-  if (enviada) {
-    return (
-      <div className="fc-tela">
-        <div className="fc-card fc-card--ok">
-          <div className="fc-selo">✓</div>
-          <h1 className="fc-titulo">Recebemos, {enviada.nome.split(' ')[0]}!</h1>
-          <p className="fc-sub">Sua contribuição foi registrada. Segue o resumo:</p>
-
-          <dl className="fc-resumo">
-            <div>
-              <dt>Tipo</dt>
-              <dd>{enviada.tipo === 'doacao' ? 'Doação' : 'Empréstimo'}</dd>
-            </div>
-            <div>
-              <dt>Valor</dt>
-              <dd>{brl(enviada.valor)}</dd>
-            </div>
-            {enviada.tipo === 'emprestimo' && (
-              <div>
-                <dt>Prazo de retorno</dt>
-                <dd>{enviada.prazoRetorno} meses</dd>
-              </div>
-            )}
-            <div>
-              <dt>Contato</dt>
-              <dd>{enviada.contato}</dd>
-            </div>
-            <div>
-              <dt>Situação</dt>
-              <dd>Aguardando confirmação da diretoria</dd>
-            </div>
-          </dl>
-
-          <button className="fc-btn" onClick={() => setEnviada(null)}>
-            Cadastrar outra contribuição
-          </button>
-        </div>
-      </div>
-    );
+  // fecha o modal e deixa o formulário pronto para uma nova contribuição
+  function concluir() {
+    setEnviada(null);
   }
 
-  // ---------- FORMULÁRIO ----------
   return (
     <div className="fc-tela">
+      {/* ---------- FORMULÁRIO (fica sempre na tela) ---------- */}
       <div className="fc-card">
         <p className="fc-eyebrow">Terreno da igreja</p>
         <h1 className="fc-titulo">Registrar contribuição</h1>
@@ -237,6 +174,46 @@ export default function FormularioContribuicao() {
           Enviar contribuição
         </button>
       </div>
+
+      {/* ---------- MODAL DE AGRADECIMENTO (fecha só pelo botão Concluir) ---------- */}
+      {enviada && (
+        <div className="fc-modal-overlay">
+          <div className="fc-modal">
+            <div className="fc-selo">🙏</div>
+            <h1 className="fc-titulo">Obrigado, {enviada.nome.split(' ')[0]}!</h1>
+            <p className="fc-sub">Sua contribuição foi registrada. Que Deus abençoe.</p>
+
+            <dl className="fc-resumo">
+              <div>
+                <dt>Tipo</dt>
+                <dd>{enviada.tipo === 'doacao' ? 'Doação' : 'Empréstimo'}</dd>
+              </div>
+              <div>
+                <dt>Valor</dt>
+                <dd>{brl(enviada.valor)}</dd>
+              </div>
+              {enviada.tipo === 'emprestimo' && (
+                <div>
+                  <dt>Prazo de retorno</dt>
+                  <dd>{enviada.prazo_retorno} meses</dd>
+                </div>
+              )}
+              <div>
+                <dt>Contato</dt>
+                <dd>{enviada.contato}</dd>
+              </div>
+              <div>
+                <dt>Situação</dt>
+                <dd>Aguardando confirmação da diretoria</dd>
+              </div>
+            </dl>
+
+            <button className="fc-btn" onClick={concluir}>
+              Concluir
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
