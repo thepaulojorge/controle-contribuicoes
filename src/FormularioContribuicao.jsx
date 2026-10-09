@@ -77,6 +77,11 @@ export default function FormularioContribuicao() {
     setEnviada(null);
   }
 
+  // abre a janela de impressão do navegador (a pessoa pode salvar como PDF)
+  function baixarComprovante() {
+    window.print();
+  }
+
   return (
     <div className="fc-tela">
       {/* ---------- FORMULÁRIO (fica sempre na tela) ---------- */}
@@ -208,9 +213,14 @@ export default function FormularioContribuicao() {
               </div>
             </dl>
 
-            <button className="fc-btn" onClick={concluir}>
-              Concluir
-            </button>
+            <div className="fc-modal-acoes">
+              <button className="fc-btn fc-btn--sec" onClick={baixarComprovante}>
+                Baixar comprovante
+              </button>
+              <button className="fc-btn" onClick={concluir}>
+                Concluir
+              </button>
+            </div>
           </div>
         </div>
       )}

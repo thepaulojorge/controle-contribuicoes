@@ -184,3 +184,49 @@
   text-align: center;
   box-shadow: 0 10px 40px rgba(0, 0, 0, .25);
 }
+
+/* --- Impressão: mostra só o comprovante (o modal) --- */
+@media print {
+  /* esconde tudo */
+  body * {
+    visibility: hidden;
+  }
+  /* exceto o modal e o que está dentro dele */
+  .fc-modal, .fc-modal * {
+    visibility: visible;
+  }
+  /* posiciona o modal no topo da folha e tira a cortina escura */
+  .fc-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: none;
+    display: block;
+  }
+  .fc-modal {
+    box-shadow: none;
+    border: none;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+  /* esconde os botões no comprovante impresso (não fazem sentido no papel) */
+  .fc-modal .fc-btn, .fc-modal .fc-modal-acoes {
+    display: none;
+  }
+}
+
+/* --- Ações do modal (botões lado a lado) --- */
+.fc-modal-acoes {
+  display: flex;
+  gap: 10px;
+}
+.fc-modal-acoes .fc-btn {
+  margin-top: 0;
+}
+.fc-btn--sec {
+  background: transparent;
+  color: var(--verde);
+  border: 1px solid var(--verde);
+}
+.fc-btn--sec:hover {
+  background: rgba(31, 111, 92, .08);
+}
